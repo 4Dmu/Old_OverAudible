@@ -31,7 +31,7 @@ namespace OverAudible
     {
         public static string DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible";
 
-        public static string LogFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible" + @"Log.txt";
+        public static string LogFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible\" + @"Log.txt";
 
         public static string EnsureFolderExists(this string s)
         {
@@ -70,11 +70,16 @@ namespace OverAudible
 
         protected async override void OnStartup(StartupEventArgs e)
         {
-            _manager = await UpdateManager.GitHubUpdateManager("https://github.com/4Dmu/OverAudible");
+
+            #if DEBUG
+
+            #else
+            _manager = await UpdateManager.GitHubUpdateManager(@"https://github.com/4Dmu/OverAudible");
             File.AppendAllText(Constants.LogFile, "\n Created Manager");
 
             await CheckForUpdatesAsync();
             File.AppendAllText(Constants.LogFile, "\n Checked for updates");
+            #endif
 
             _host.Start();
             File.AppendAllText(Constants.LogFile, "\n Started Host");
