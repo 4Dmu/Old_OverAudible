@@ -23,6 +23,7 @@ using System.Globalization;
 using System.Net;
 using System.Windows.Media.Imaging;
 using OverAudible.Windows;
+using Squirrel;
 
 namespace OverAudible
 {
@@ -40,6 +41,7 @@ namespace OverAudible
     public partial class App : Application
     {
         IHost _host;
+        UpdateManager _manager;
         
         public App()
         {
@@ -64,6 +66,10 @@ namespace OverAudible
 
         protected async override void OnStartup(StartupEventArgs e)
         {
+            _manager = await UpdateManager.GitHubUpdateManager("https://github.com/4Dmu/OverAudible");
+
+            await CheckForUpdatesAsync();
+
             _host.Start();
 
             Shell.SetServiceProvider(_host.Services);
@@ -149,6 +155,18 @@ namespace OverAudible
             
 
             base.OnStartup(e);  
+        }
+
+        private async Task CheckForUpdatesAsync()
+        {
+            var updateInfo = await _manager.CheckForUpdate();
+
+            if (updateInfo.ReleasesToApply.Count > 0)
+            {
+                ShellUI.Controls.MessageBox.Show("The app is currently installing updates, please wait");
+                await _manager.UpdateApp();
+                ShellUI.Controls.MessageBox.Show("The app was sucessfully updated, please restart to apply updates.");
+            }
         }
 
         protected async override void OnExit(ExitEventArgs e)
