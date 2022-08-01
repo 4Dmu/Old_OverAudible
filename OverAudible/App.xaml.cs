@@ -31,6 +31,8 @@ namespace OverAudible
     {
         public static string DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible";
 
+        public static string LogFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible" + @"Log.txt";
+
         public static string EnsureFolderExists(this string s)
         {
             Directory.CreateDirectory(s);
@@ -45,6 +47,7 @@ namespace OverAudible
         
         public App()
         {
+            File.WriteAllText(Constants.LogFile, "");
             _host = Host.CreateDefaultBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
@@ -62,22 +65,29 @@ namespace OverAudible
                     services.AutoRegisterDependencies(this.GetType().Assembly.GetTypes());
                 })
                 .Build();
+            File.AppendAllText(Constants.LogFile, "\n Built Host");
         }
 
         protected async override void OnStartup(StartupEventArgs e)
         {
             _manager = await UpdateManager.GitHubUpdateManager("https://github.com/4Dmu/OverAudible");
+            File.AppendAllText(Constants.LogFile, "\n Created Manager");
 
             await CheckForUpdatesAsync();
+            File.AppendAllText(Constants.LogFile, "\n Checked for updates");
 
             _host.Start();
+            File.AppendAllText(Constants.LogFile, "\n Started Host");
 
             Shell.SetServiceProvider(_host.Services);
+            File.AppendAllText(Constants.LogFile, "\n Set Shell Services");
 
             var data = _host.Services.GetRequiredService<MainDbContext>();
 
+
             data.Database.Migrate();
-            
+            File.AppendAllText(Constants.LogFile, "\n Migrated database");
+
             Routing.RegisterRoute(nameof(HomeView), typeof(HomeView));
             Routing.RegisterRoute(nameof(LibraryView), typeof(LibraryView));
             Routing.RegisterRoute(nameof(BrowseView), typeof(BrowseView));
@@ -88,11 +98,14 @@ namespace OverAudible
             Routing.RegisterRoute(nameof(NewCollectionModal), typeof(NewCollectionModal));
             Routing.RegisterRoute(nameof(AddToCollectionModal), typeof(AddToCollectionModal));
             Routing.RegisterRoute(nameof(FilterModal), typeof(FilterModal));
+            File.AppendAllText(Constants.LogFile, "\n Added routes");
 
             Constants.DownloadFolder.EnsureFolderExists();
+            File.AppendAllText(Constants.LogFile, "\n Ensure download folder exists");
 
             if (AppExtensions.CheckForInternetConnection())
             {
+                File.AppendAllText(Constants.LogFile, "\n App is running in online mode");
                 MainWindow = new Shell()
                 {
                     Title = "OverAudible",
@@ -105,6 +118,8 @@ namespace OverAudible
                 .AddFlyoutItem(new FlyoutItem("Browse", nameof(BrowseView)).SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Search))
                 .AddFlyoutItem(new FlyoutItem("Cart", nameof(CartView)).SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Cart))
                 .AddFlyoutItem(new FlyoutItem("Settings", nameof(SettingsView)).SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Settings));
+
+                File.AppendAllText(Constants.LogFile, "\n Created main window");
 
                 ApiClient c = null;
                 try
@@ -122,12 +137,19 @@ namespace OverAudible
                         App.Current.Shutdown();
                 }
 
+                File.AppendAllText(Constants.LogFile, "\n Logged in or got client");
+
                 MainWindow.Show();
 
+                File.AppendAllText(Constants.LogFile, "\n Shown main window");
+
                 await Shell.Current.GoToAsync(nameof(HomeView), false);
+
+                File.AppendAllText(Constants.LogFile, "\n navigated to home page");
             }
             else
             {
+                File.AppendAllText(Constants.LogFile, "\n App is running in offline mode");
                 MainWindow = new Shell()
                 {
                     Title = "OverAudible",
@@ -139,17 +161,21 @@ namespace OverAudible
                     .SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Books))
                 .AddFlyoutItem(new FlyoutItem("Settings", nameof(SettingsView))
                     .SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Settings));
+                File.AppendAllText(Constants.LogFile, "\n Created Main Window");
 
                 MainWindow.Show();
+                File.AppendAllText(Constants.LogFile, "\n Shown main winow");
 
                 await Shell.Current.GoToAsync(nameof(LibraryView), false, ShellWindow.Direction.Left, new Dictionary<string, object>
                 {
                     { "UseOfflineMode", true }
                 });
+                File.AppendAllText(Constants.LogFile, "\n navigated to Library page");
 
                 Shell.Current.CurrentPage.DisplayAlert("Alert", "You are currently in offline mode, " +
                     "please connect to the internet and restart to get the apps full functionality, " +
                     "while you are in offline mode you can only listen and view books you have already downloaded.");
+                File.AppendAllText(Constants.LogFile, "\n Displayed offline allert");
             }
 
             
