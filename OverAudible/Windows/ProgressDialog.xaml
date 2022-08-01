@@ -1,0 +1,21 @@
+﻿<Window xmlns:syncfusion="http://schemas.syncfusion.com/wpf"  x:Class="OverAudible.Windows.ProgressDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OverAudible.Windows"
+        xmlns:shell="clr-namespace:ShellUI;assembly=ShellUI"
+        Background="{DynamicResource {x:Static shell:Brushes.BackgroundBrush}}"
+        mc:Ignorable="d"
+        WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        Height="200" Width="350" x:Name="prnt">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <TextBlock Text="{Binding Message,ElementName=prnt}" Margin="3"/>
+        <syncfusion:SfLinearProgressBar Grid.Row="1" Height="25" Margin="5" IsIndeterminate="True"/>
+    </Grid>
+</Window>

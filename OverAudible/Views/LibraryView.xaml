@@ -1,0 +1,306 @@
+﻿<controls:ShellPage xmlns:syncfusion="http://schemas.syncfusion.com/wpf"  x:Class="OverAudible.Views.LibraryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:OverAudible.Views"
+              xmlns:shellUi="clr-namespace:ShellUI;assembly=ShellUI"
+                    xmlns:exts="clr-namespace:ShellUI.Extensions;assembly=ShellUI"
+              xmlns:controls="clr-namespace:ShellUI.Controls;assembly=ShellUI"
+                    xmlns:mat="http://materialdesigninxaml.net/winfx/xaml/themes"
+            xmlns:models="clr-namespace:OverAudible.Models"
+                    xmlns:behaviours="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+                    Title="Library"
+            >
+    <Grid>
+        <TabControl x:Name="tabC">
+            
+            <TabItem Header="Books" Width="100">
+                <ScrollViewer x:Name="scroll">
+                    <behaviours:Interaction.Triggers>
+                        <behaviours:EventTrigger EventName="ScrollChanged">
+                            <behaviours:InvokeCommandAction 
+                                Command="{Binding LibraryScrollCommand}"
+                                PassEventArgsToCommand="True"/>
+                        </behaviours:EventTrigger>
+                    </behaviours:Interaction.Triggers>
+                    <ItemsControl ItemsSource="{Binding Library}" Margin="0,0,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:Item}">
+                                <Border CornerRadius="5" Height="150" Margin="5" MouseLeftButtonDown="LibraryBookInstance_MouseLeftButtonDown">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="Black" Opacity="0.5"/>
+                                    </Border.Background>
+                                    <Grid>
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="100"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid Grid.Row="0" Grid.Column="0">
+                                            <Image Margin="0,5,0,0" Source="{Binding ProductImages.The500}"/>
+                                        </Grid>
+
+                                        <Button Grid.Row="1" Grid.Column="0" Margin="5" Width="116"
+                                            Content="Sample" Padding="0" Click="Sample_Click"/>
+
+                                        <StackPanel Grid.Column="1" Margin="0,5,0,0">
+                                            <TextBlock Text="{Binding Title}" FontSize="15"/>
+                                            <TextBlock Text="{Binding Authors, Converter={StaticResource PersonArrayToStringConverter}, ConverterParameter='Authors: '}"/>
+                                            <TextBlock Text="{Binding Narrators, Converter={StaticResource PersonArrayToStringConverter}, ConverterParameter='Narrators: '}"/>
+                                            <TextBlock Text="{Binding Series, Converter={StaticResource SeriesToStringConverter}}"/>
+                                            <TextBlock Text="{Binding RuntimeLengthMin, Converter={StaticResource MinutesToLengthStringConverter}}" />
+                                            <TextBlock Text="{Binding ReleaseDate, StringFormat='Release Date: {0:MM/dd/yy}'}" />
+                                            <TextBlock Text="{Binding Language, StringFormat='Language: {0}'}" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <syncfusion:SfRating  Value="{Binding Rating.OverallDistribution.AverageRating}" ItemsCount="5" Precision="Half"
+                                                ItemSize="15" ItemsSpacing="1" IsReadOnly="True" >
+                                                    <syncfusion:SfRating.ItemContainerStyle>
+                                                        <Style TargetType="syncfusion:SfRatingItem">
+                                                            <Setter Property="RatedFill" Value="{DynamicResource {x:Static shellUi:Brushes.AccentBrush}}"/>
+                                                            <Setter Property="UnratedFill" Value="{DynamicResource {x:Static shellUi:Brushes.ForegroundBrush}}" />
+                                                        </Style>
+                                                    </syncfusion:SfRating.ItemContainerStyle>
+                                                </syncfusion:SfRating>
+                                                <TextBlock Text="{Binding Rating, Converter={StaticResource RatingToStringConverter}}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Grid.RowSpan="2">
+                                            <Button Content="Add to Cart"  
+                                            Visibility="{Binding IsNotInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Margin="5" Click="AddToCart_Click"/>
+                                            <Button Content="Add to Wishlist"  
+                                                Height="30" Margin="5"  Click="AddToWishlist_Click"
+                                                >
+                                                <!--="{Binding Item.IsNotInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"> -->
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource AllBoolsToVisibilityConverter}">
+                                                        <Binding Path="IsNotInLibrary" />
+                                                        <Binding Path="IsNotInWishlist" />
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+                                            <Button Content="Remove from Wishlist"  
+                                                Height="30" Margin="5" Click="RemoveFromWishlist_Click">
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource AllBoolsToVisibilityConverter}">
+                                                        <Binding Path="IsNotInLibrary" />
+                                                        <Binding Path="IsInWishlist" />
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+                                            <Button Content="Play"  Click="Play_Click"
+                                            Visibility="{Binding IsInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Margin="5"/>
+                                            <Button Content="Download" Click="Download_Click"
+                                            Margin="5">
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource BoolsToVisibilityInvertLastBoolConverter}">
+                                                        <Binding Path="IsInLibrary" />
+                                                        <Binding Path="ActualIsDownloaded" />
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+                                            <ProgressBar Visibility="Collapsed" Height="20"/>
+                                            <Button Visibility="{Binding ActualIsDownloaded, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="5" Padding="0,5,5,5" IsEnabled="False">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <mat:PackIcon Kind="Check" Foreground="{DynamicResource {x:Static shellUi:Brushes.AccentBrush}}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Downloaded"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Wishlist" Width="100" Visibility="{Binding DontUseOfflineMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ScrollViewer x:Name="scroll2">
+                    <behaviours:Interaction.Triggers>
+                        <behaviours:EventTrigger EventName="ScrollChanged">
+                            <behaviours:InvokeCommandAction 
+                                Command="{Binding WishlistScrollCommand}"
+                                PassEventArgsToCommand="True"/>
+                        </behaviours:EventTrigger>
+                    </behaviours:Interaction.Triggers>
+                    <ItemsControl ItemsSource="{Binding Wishlist}" Margin="0,0,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:Item}">
+                                <Border CornerRadius="5" Height="150" Margin="5" MouseLeftButtonDown="WishlistBookInstance_MouseLeftButtonDown">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="Black" Opacity="0.5"/>
+                                    </Border.Background>
+                                    <Grid>
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="30"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="150"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid Grid.Row="0" Grid.Column="0">
+                                            <Image Margin="0,5,0,0" Source="{Binding ProductImages.The500}"/>
+                                        </Grid>
+
+                                        <Button Grid.Row="1" Grid.Column="0" Margin="5" Width="116"
+                                        Content="Sample" Padding="0" Click="Sample_Click"/>
+
+                                        <StackPanel Grid.Column="1" Margin="0,5,0,0">
+                                            <TextBlock Text="{Binding Title}" FontSize="15"/>
+                                            <TextBlock Text="{Binding Authors, Converter={StaticResource PersonArrayToStringConverter}, ConverterParameter='Authors: '}"/>
+                                            <TextBlock Text="{Binding Narrators, Converter={StaticResource PersonArrayToStringConverter}, ConverterParameter='Narrators: '}"/>
+                                            <TextBlock Text="{Binding Series, Converter={StaticResource SeriesToStringConverter}}"/>
+                                            <TextBlock Text="{Binding RuntimeLengthMin, Converter={StaticResource MinutesToLengthStringConverter}}" />
+                                            <TextBlock Text="{Binding ReleaseDate, StringFormat='Release Date: {0:MM/dd/yy}'}" />
+                                            <TextBlock Text="{Binding Language, StringFormat='Language: {0}'}" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <syncfusion:SfRating  Value="{Binding Rating.OverallDistribution.AverageRating}" ItemsCount="5" Precision="Half"
+                                            ItemSize="15" ItemsSpacing="1" IsReadOnly="True" >
+                                                    <syncfusion:SfRating.ItemContainerStyle>
+                                                        <Style TargetType="syncfusion:SfRatingItem">
+                                                            <Setter Property="RatedFill" Value="{DynamicResource {x:Static shellUi:Brushes.AccentBrush}}"/>
+                                                            <Setter Property="UnratedFill" Value="{DynamicResource {x:Static shellUi:Brushes.ForegroundBrush}}" />
+                                                        </Style>
+                                                    </syncfusion:SfRating.ItemContainerStyle>
+                                                </syncfusion:SfRating>
+                                                <TextBlock Text="{Binding Rating, Converter={StaticResource RatingToStringConverter}}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Grid.RowSpan="2">
+                                            <Button Content="Add to Cart"  
+                                            Visibility="{Binding IsNotInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Margin="5" Click="AddToCart_Click"/>
+                                            <Button Content="Add to Wishlist"  
+                                                Height="30" Margin="5"  Click="AddToWishlist_Click"
+                                                >           
+                                                <!--="{Binding Item.IsNotInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"> -->
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource AllBoolsToVisibilityConverter}">
+                                                        <Binding Path="IsNotInLibrary" />
+                                                        <Binding Path="IsNotInWishlist" />
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+                                            <Button Content="Remove from Wishlist"  
+                                                Height="30" Margin="5" Click="RemoveFromWishlist_Click">
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource AllBoolsToVisibilityConverter}">
+                                                        <Binding Path="IsNotInLibrary" />
+                                                        <Binding Path="IsInWishlist" />
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+                                            <Button Content="Play"  Click="Play_Click"
+                                            Visibility="{Binding IsInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Margin="5"/>
+                                            <Button Content="Download" Click="Download_Click"
+                                            Visibility="{Binding IsInLibrary, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Margin="5"/>
+                                        </StackPanel>
+
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Collections" Width="100" Visibility="{Binding DontUseOfflineMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ScrollViewer>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <Grid>
+
+                            <TextBlock 
+                                Text="{Binding Collections.Count, Converter={StaticResource AddTextAfterDataConverter}, ConverterParameter=Collections}"
+                                FontSize="15"/>
+
+                            <Button Content="New Collection" HorizontalAlignment="Right" Command="{Binding CreateCollectionCommand}">
+
+                            </Button>
+                        </Grid>
+                        
+                        <ItemsControl ItemsSource="{Binding Collections}" Margin="0,0,0,0" Grid.Row="1">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:Collection}">
+                                    <Border CornerRadius="5" Height="150" Margin="5" MouseLeftButtonDown="CollectionBookInstance_MouseLeftButtonDown">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="Black" Opacity="0.5"/>
+                                        </Border.Background>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition />
+                                                <ColumnDefinition />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition />
+                                                    <RowDefinition />
+                                                </Grid.RowDefinitions>
+
+                                                <Image Source="{Binding Image1}" Grid.Column="0" Grid.Row="0"
+                                                   Margin="2"/>
+                                                <Image Source="{Binding Image2}" Grid.Column="0" Grid.Row="1"
+                                                   Margin="2"/>
+                                                <Image Source="{Binding Image3}" Grid.Column="1" Grid.Row="0"
+                                                   Margin="2"/>
+                                                <Image Source="{Binding Image4}" Grid.Column="1" Grid.Row="1"
+                                                   Margin="2"/>
+
+                                            </Grid>
+
+                                            <StackPanel Grid.Column="1" Margin="5,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" FontSize="20"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="15"/>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2" Height="140" Width="30" 
+                                                HorizontalAlignment="Right" Padding="0" 
+                                                Margin="5" exts:CornerRadiusExtension.CornerRadius="5" Click="CollectionOptionsInstance_Click">
+                                                <mat:PackIcon Kind="MoreVert" FontSize="15" Width="25" Height="25"/>
+                                            </Button>
+
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+            
+        </TabControl>  
+        <syncfusion:SfBusyIndicator IsBusy="{Binding IsBusy}"/>
+    </Grid>
+</controls:ShellPage>

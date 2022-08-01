@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>OverAudible</id>
+    <version>0.0.0</version>
+    <title>OverAudible</title>
+    <authors>4Dmu</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <!-- <icon>icon.png</icon> -->
+    <projectUrl>https://github.com/4Dmu/OverAudible-Version2</projectUrl>
+    <description>OverAudible is a windows only desktop app for managing and playing your audible audiobooks.</description>
+    <releaseNotes>This is version one and it's currenly in beta</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>Audiobooks Audible</tags>
+  </metadata>
+	<files>
+		<file src="bin\Release\net6.0-windows\**" target="lib\net45"/>
+	</files>
+	
+</package>

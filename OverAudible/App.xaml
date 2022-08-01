@@ -1,0 +1,32 @@
+﻿<Application x:Class="OverAudible.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:OverAudible"
+             xmlns:shellUi="clr-namespace:ShellUI;assembly=ShellUI" 
+             DispatcherUnhandledException="Application_DispatcherUnhandledException"
+             xmlns:converters="clr-namespace:OverAudible.Converters" 
+             xmlns:controls="clr-namespace:Microsoft.Windows.Controls;assembly=U2UConsult.RichHtmlTextBlock"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/ShellUI;component/ColorSchemes/Dark.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/ShellUI.Theme;component/Resources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:PersonArrayToStringConverter x:Key="PersonArrayToStringConverter" />
+            <converters:MinutesToLengthStringConverter x:Key="MinutesToLengthStringConverter" />
+            <converters:RatingToStringConverter x:Key="RatingToStringConverter" />
+            <controls:HtmlFormatter x:Key="HtmlFormatter" />
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:AllBoolsToVisibilityConverter x:Key="AllBoolsToVisibilityConverter" />
+            <converters:SeriesToStringConverter x:Key="SeriesToStringConverter" />
+            <converters:AddTextAfterDataConverter x:Key="AddTextAfterDataConverter" />
+            <converters:BoolsToVisibilityInvertLastBoolConverter x:Key="BoolsToVisibilityInvertLastBoolConverter" />
+            <converters:MinutesToShorterLengthStringConverter x:Key="MinutesToShorterLengthStringConverter" />
+            <converters:ChapterToTextConverter x:Key="ChapterToTextConverter" />
+            <converters:MillisecondsToStringConverter x:Key="MillisecondsToStringConverter" />
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
