@@ -202,7 +202,11 @@ namespace OverAudible
             if (updateInfo.ReleasesToApply.Count > 0)
             {
                 ShellUI.Controls.MessageBox.Show("The app is currently installing updates, please wait");
-                await _manager.UpdateApp();
+                Action<int> prog = delegate (int i) 
+                {
+                    ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString());
+                };
+                await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () => await _manager.UpdateApp(prog));
                 ShellUI.Controls.MessageBox.Show("The app was sucessfully updated, please restart to apply updates.");
             }
         }
