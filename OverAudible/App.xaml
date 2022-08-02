@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:OverAudible"
              xmlns:shellUi="clr-namespace:ShellUI;assembly=ShellUI" 
-             DispatcherUnhandledException="Application_DispatcherUnhandledException"
              xmlns:converters="clr-namespace:OverAudible.Converters" 
              xmlns:controls="clr-namespace:Microsoft.Windows.Controls;assembly=U2UConsult.RichHtmlTextBlock"
              ShutdownMode="OnMainWindowClose">

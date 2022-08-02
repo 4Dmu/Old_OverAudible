@@ -65,7 +65,14 @@ namespace OverAudible
                     services.AutoRegisterDependencies(this.GetType().Assembly.GetTypes());
                 })
                 .Build();
+            AppDomain.CurrentDomain.UnhandledException += AppUnhandledException;
             File.AppendAllText(Constants.LogFile, "\n Built Host");
+        }
+
+        private void AppUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            File.WriteAllText(Constants.DownloadFolder + @"\" + "Error.txt", ((Exception)e.ExceptionObject).Message);
+            ShellUI.Controls.MessageBox.Show("An unhandled exception just occurred: " + ((Exception)e.ExceptionObject).Message, "Exception Sample", ShellUI.Controls.MessageBoxButton.OK, ShellUI.Controls.MessageBoxImage.Warning);
         }
 
         protected async override void OnStartup(StartupEventArgs e)
@@ -208,12 +215,6 @@ namespace OverAudible
             base.OnExit(e);
         }
 
-        private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
-        {
-            File.WriteAllText(Constants.DownloadFolder + @"\" + "Error.txt", e.Exception.Message);
-            ShellUI.Controls.MessageBox.Show("An unhandled exception just occurred: " + e.Exception.Message, "Exception Sample", ShellUI.Controls.MessageBoxButton.OK, ShellUI.Controls.MessageBoxImage.Warning);
-            e.Handled = true;
-        }
     }
 
     public static class AppExtensions
