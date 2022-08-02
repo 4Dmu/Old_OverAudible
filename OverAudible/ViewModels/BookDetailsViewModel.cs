@@ -11,6 +11,7 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ShellUI.Controls;
 using OverAudible.Commands;
+using Serilog;
 
 namespace OverAudible.ViewModels
 {
@@ -29,8 +30,9 @@ namespace OverAudible.ViewModels
         public AsyncRelayCommand MoreOptionsCommand { get; }
         public RelayCommand<Item> SampleCommand { get; }
 
-        public BookDetailsViewModel(StandardCommands commands)
+        public BookDetailsViewModel(StandardCommands commands, ILogger logger)
         {
+            _logger = logger;
             StandardCommands = commands;
             MoreOptionsCommand = new AsyncRelayCommand(MoreOptions);
             SampleCommand = new RelayCommand<Item>(Sample);
@@ -102,7 +104,7 @@ namespace OverAudible.ViewModels
                         break;
                 }
             }
-           
+            _logger.Debug($"Called more options, source {nameof(BookDetailsViewModel)}");
         }
 
         void Sample(Item item)
@@ -117,6 +119,7 @@ namespace OverAudible.ViewModels
                 IsPlayingSample = true;
                 StandardCommands.PlaySampleCommand.Execute(item);
             }
+            _logger.Debug($"Started or stoped sample, source {nameof(BookDetailsViewModel)}");
         }
 
     }

@@ -12,6 +12,7 @@ using ShellUI.Controls;
 using OverAudible.EventMessages;
 using CommunityToolkit.Mvvm.Input;
 using OverAudible.Commands;
+using Serilog;
 
 namespace OverAudible.ViewModels
 {
@@ -27,8 +28,9 @@ namespace OverAudible.ViewModels
 
         public ConcurrentObservableCollection<Item> Cart { get; private set; }
 
-        public CartViewModel(CartService cart, StandardCommands commands)
+        public CartViewModel(CartService cart, StandardCommands commands, ILogger logger)
         {
+            _logger = logger;
             _cartService = cart;
             _commands = commands;
             Cart = new();
@@ -50,6 +52,7 @@ namespace OverAudible.ViewModels
             if (obj.InnerMessage is ItemAddedToCartMessage msg)
             {
                 Cart.Add(msg.AddedItem);
+                _logger.Debug($"ItemAddedToCartMessage received, msg: {msg}, source {nameof(CartViewModel)}");
             }
         }
 
@@ -60,12 +63,14 @@ namespace OverAudible.ViewModels
         {
             Cart.Remove(item);
             _cartService.RemoveCartItem(item);
+            _logger.Debug($"Removed item from cart: item {item}, source {nameof(CartViewModel)}");
         }
 
         async Task RemoveFromCartAndAddToWishlist(Item item)
         {
             await RemoveFromCart(item);
             _commands.AddToWishlistCommand.Execute(item);
+            _logger.Debug($"Removed item from cart and added to wishlist: item {item}, source {nameof(CartViewModel)}");
         }
     }
 }

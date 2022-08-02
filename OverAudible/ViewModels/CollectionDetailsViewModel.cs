@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using OverAudible.Commands;
 using ShellUI.Controls;
 using OverAudible.EventMessages;
+using Serilog;
 
 namespace OverAudible.ViewModels
 {
@@ -38,8 +39,9 @@ namespace OverAudible.ViewModels
 
         public bool IsPlayingSample { get; set; } = false;
 
-        public CollectionDetailsViewModel(LibraryService libraryService, StandardCommands standardCommands)
+        public CollectionDetailsViewModel(LibraryService libraryService, StandardCommands standardCommands, ILogger logger)
         {
+            _logger = logger;
             _libraryService = libraryService;
             StandardCommands = standardCommands;
             Shell.Current.EventAggregator.Subscribe<SampleStopedMessage>(OnSampleStoped);
@@ -102,6 +104,7 @@ namespace OverAudible.ViewModels
                     Books.Insert(0, itemToAdd);
                     sv.ScrollToVerticalOffset(bookCardHeightValue);
                 }
+                _logger.Verbose($"Scrolled collections,, source {nameof(CollectionDetailsViewModel)}");
             }
         }
 
@@ -117,6 +120,8 @@ namespace OverAudible.ViewModels
                 IsPlayingSample = true;
                 StandardCommands.PlaySampleCommand.Execute(item);
             }
+
+            _logger.Verbose($"Played or stopped sample, source {nameof(CollectionDetailsViewModel)}");
         }
     }
 }

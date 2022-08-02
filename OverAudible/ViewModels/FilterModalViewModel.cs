@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OverAudible.EventMessages;
+using Serilog;
 
 namespace OverAudible.ViewModels
 {
@@ -34,8 +35,9 @@ namespace OverAudible.ViewModels
 
         public RelayCommand ApplyFiltersCommand { get; }
 
-        public FilterModalViewModel()
+        public FilterModalViewModel(ILogger logger)
         {
+            _logger = logger;
             CategoryFilters = new();
             LengthFilters = new();
             PriceFilters = new();
@@ -67,6 +69,7 @@ namespace OverAudible.ViewModels
             {
                 PriceFilters.Add(ModelExtensions.GetDescription(item));
             }
+            _logger.Verbose($"Filled lists with items, source {nameof(FilterModalViewModel)}");
         }
 
     }

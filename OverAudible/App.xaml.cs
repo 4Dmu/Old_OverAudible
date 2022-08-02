@@ -24,6 +24,7 @@ using System.Net;
 using System.Windows.Media.Imaging;
 using OverAudible.Windows;
 using Squirrel;
+using Serilog;
 
 namespace OverAudible
 {
@@ -31,7 +32,7 @@ namespace OverAudible
     {
         public static string DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible";
 
-        public static string LogFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible\" + @"Log.txt";
+        public static string LogFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible\Logs\" + @"Log.txt";
 
         public static string EnsureFolderExists(this string s)
         {
@@ -47,8 +48,14 @@ namespace OverAudible
         
         public App()
         {
-            File.WriteAllText(Constants.LogFile, "");
             _host = Host.CreateDefaultBuilder()
+                .UseSerilog((host, logger) =>
+                {
+                    logger
+                    .WriteTo.Console()
+                    .WriteTo.File(Constants.LogFile, rollingInterval: RollingInterval.Day)
+                    .MinimumLevel.Debug();
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
                     string connectionString = hostContext.Configuration.GetConnectionString("Default");
@@ -65,40 +72,41 @@ namespace OverAudible
                     services.AutoRegisterDependencies(this.GetType().Assembly.GetTypes());
                 })
                 .Build();
+
             AppDomain.CurrentDomain.UnhandledException += AppUnhandledException;
-            File.AppendAllText(Constants.LogFile, "\n Built Host");
         }
 
         private void AppUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            File.WriteAllText(Constants.DownloadFolder + @"\" + "Error.txt", ((Exception)e.ExceptionObject).Message);
+            var logger = _host.Services.GetRequiredService<ILogger>();
+            Exception ex = ((Exception)e.ExceptionObject);
+            logger.Fatal($"Message: {ex.Message}, InnerException: {ex.InnerException.Message}, " +
+                $"Source: {ex.Source}, StackTrace: {ex.StackTrace}, Data: {ex.Data}, HResult: {ex.HResult}, source {nameof(App)}");
             ShellUI.Controls.MessageBox.Show("An unhandled exception just occurred: " + ((Exception)e.ExceptionObject).Message, "Exception Sample", ShellUI.Controls.MessageBoxButton.OK, ShellUI.Controls.MessageBoxImage.Warning);
         }
 
         protected async override void OnStartup(StartupEventArgs e)
         {
+            _host.Start();
+
+            ILogger logger = _host.Services.GetRequiredService<ILogger>();
+
+            logger.Debug($"Created logger and started host, source {nameof(App)}");
 
             #if DEBUG
-
             #else
             _manager = await UpdateManager.GitHubUpdateManager(@"https://github.com/4Dmu/OverAudible");
-            File.AppendAllText(Constants.LogFile, "\n Created Manager");
-
             await CheckForUpdatesAsync();
-            File.AppendAllText(Constants.LogFile, "\n Checked for updates");
             #endif
-
-            _host.Start();
-            File.AppendAllText(Constants.LogFile, "\n Started Host");
+            logger.Debug($"Checked for updates if running in release mode, source {nameof(App)}");
 
             Shell.SetServiceProvider(_host.Services);
-            File.AppendAllText(Constants.LogFile, "\n Set Shell Services");
+            logger.Debug($"Set shell services, source {nameof(App)}");
 
             var data = _host.Services.GetRequiredService<MainDbContext>();
 
-
             data.Database.Migrate();
-            File.AppendAllText(Constants.LogFile, "\n Migrated database");
+            logger.Debug($"Migrated database, source {nameof(App)}");
 
             Routing.RegisterRoute(nameof(HomeView), typeof(HomeView));
             Routing.RegisterRoute(nameof(LibraryView), typeof(LibraryView));
@@ -110,14 +118,15 @@ namespace OverAudible
             Routing.RegisterRoute(nameof(NewCollectionModal), typeof(NewCollectionModal));
             Routing.RegisterRoute(nameof(AddToCollectionModal), typeof(AddToCollectionModal));
             Routing.RegisterRoute(nameof(FilterModal), typeof(FilterModal));
-            File.AppendAllText(Constants.LogFile, "\n Added routes");
+            logger.Debug($"Added routes, source {nameof(App)}");
+
 
             Constants.DownloadFolder.EnsureFolderExists();
-            File.AppendAllText(Constants.LogFile, "\n Ensure download folder exists");
+            logger.Debug($"Ensure download folder exists, source {nameof(App)}");
 
             if (AppExtensions.CheckForInternetConnection())
             {
-                File.AppendAllText(Constants.LogFile, "\n App is running in online mode");
+                logger.Information($"Running in online mode, source {nameof(App)}");
                 MainWindow = new Shell()
                 {
                     Title = "OverAudible",
@@ -130,38 +139,43 @@ namespace OverAudible
                 .AddFlyoutItem(new FlyoutItem("Browse", nameof(BrowseView)).SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Search))
                 .AddFlyoutItem(new FlyoutItem("Cart", nameof(CartView)).SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Cart))
                 .AddFlyoutItem(new FlyoutItem("Settings", nameof(SettingsView)).SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Settings));
-
-                File.AppendAllText(Constants.LogFile, "\n Created main window");
+                logger.Debug($"Created Main Window, source {nameof(App)}");
 
                 ApiClient c = null;
                 try
                 {
                     c = await ApiClient.GetInstance("", "");
+                    logger.Debug($"Successfully got client meaning user is already logged in, source {nameof(App)}");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    logger.Information($"Error getting client, meaning user needs to login, source {nameof(App)}");
+                    logger.Error($"Error getting client, message: " + ex.Message + "$, source {nameof(App)}");
+                }
 
                 if (c is null)
                 {
                     LoginWindow w = new();
                     w.ShowDialog();
+                    logger.Debug($"Showed login window, source {nameof(App)}");
 
                     if (w.Result == null)
+                    {
+                        logger.Error($"Login failed, shutting down app, source {nameof(App)}");
                         App.Current.Shutdown();
+                    }
                 }
-
-                File.AppendAllText(Constants.LogFile, "\n Logged in or got client");
+                logger.Debug($"Sucessfully got client or logged in, source {nameof(App)}");
 
                 MainWindow.Show();
-
-                File.AppendAllText(Constants.LogFile, "\n Shown main window");
+                logger.Debug($"Shown mainwindow, source {nameof(App)}");
 
                 await Shell.Current.GoToAsync(nameof(HomeView), false);
-
-                File.AppendAllText(Constants.LogFile, "\n navigated to home page");
+                logger.Debug($"navigated to " + nameof(HomeView) + $" page, source {nameof(App)}");
             }
             else
             {
-                File.AppendAllText(Constants.LogFile, "\n App is running in offline mode");
+                logger.Information($"Running in offline mode, source {nameof(App)}");
                 MainWindow = new Shell()
                 {
                     Title = "OverAudible",
@@ -173,25 +187,27 @@ namespace OverAudible
                     .SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Books))
                 .AddFlyoutItem(new FlyoutItem("Settings", nameof(SettingsView))
                     .SetIcon(MaterialDesignThemes.Wpf.PackIconKind.Settings));
-                File.AppendAllText(Constants.LogFile, "\n Created Main Window");
+                logger.Debug($"created mainwindow, source {nameof(App)}");
 
                 MainWindow.Show();
-                File.AppendAllText(Constants.LogFile, "\n Shown main winow");
+                logger.Debug($"Shown mainwindow, source {nameof(App)}");
 
                 await Shell.Current.GoToAsync(nameof(LibraryView), false, ShellWindow.Direction.Left, new Dictionary<string, object>
                 {
                     { "UseOfflineMode", true }
                 });
-                File.AppendAllText(Constants.LogFile, "\n navigated to Library page");
+
+                logger.Debug($"Navigvated to {nameof(LibraryView)} page in offline mode, source {nameof(App)}");
 
                 Shell.Current.CurrentPage.DisplayAlert("Alert", "You are currently in offline mode, " +
                     "please connect to the internet and restart to get the apps full functionality, " +
                     "while you are in offline mode you can only listen and view books you have already downloaded.");
-                File.AppendAllText(Constants.LogFile, "\n Displayed offline allert");
+                logger.Debug($"Displayed offline alert message, source {nameof(App)}");
             }
 
             MainWindow.Closed += (s, e) =>
             {
+                logger.Debug($"Mainwindow closed and app shutting down, source {nameof(App)}");
                 App.Current.Shutdown();
             };
 
@@ -201,10 +217,8 @@ namespace OverAudible
         private async Task CheckForUpdatesAsync()
         {
             var updateInfo = await _manager.CheckForUpdate();
-            File.AppendAllText(Constants.LogFile, "\n got update info");
             if (updateInfo.ReleasesToApply.Count > 0)
             {
-                File.AppendAllText(Constants.LogFile, "\n Number of updates: " + updateInfo.ReleasesToApply.Count);
                 Action<int> prog = delegate (int i) 
                 {
                     ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString());

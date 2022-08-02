@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -52,5 +53,7 @@ namespace OverAudible.ViewModels
         }
 
         public bool IsNotBusy => !IsBusy;
+
+        protected ILogger _logger;
     }
 }

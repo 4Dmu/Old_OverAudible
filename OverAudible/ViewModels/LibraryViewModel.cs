@@ -9,6 +9,7 @@ using OverAudible.Models;
 using OverAudible.Models.Extensions;
 using OverAudible.Services;
 using OverAudible.Views;
+using Serilog;
 using ShellUI.Attributes;
 using ShellUI.Controls;
 using ShellUI.ViewModels;
@@ -60,8 +61,9 @@ namespace OverAudible.ViewModels
 
         public bool DontUseOfflineMode => !UseOfflineMode;
 
-        public LibraryViewModel(LibraryService libraryService, StandardCommands standardCommands, IDownloadQueue download, IDataService<Item> dataService)
+        public LibraryViewModel(LibraryService libraryService, StandardCommands standardCommands, IDownloadQueue download, IDataService<Item> dataService, ILogger logger)
         {
+            _logger = logger;
             _libraryService = libraryService;
             StandardCommands = standardCommands;
             TotalLibrary = new();
@@ -87,6 +89,7 @@ namespace OverAudible.ViewModels
             if (obj.InnerMessage is NewCollectionMessage msg)
             {
                 Collections.Add(msg.Collection);
+                _logger.Debug($"Recieved a NewCollectionMessage message, msg: {msg}, source {nameof(LibraryViewModel)}");
             }
 
             if (obj.InnerMessage is WishlistModifiedMessage msg2)
@@ -95,6 +98,7 @@ namespace OverAudible.ViewModels
                     Wishlist.Add(msg2.Item);
                 if (msg2.Action == WishlistAction.Removed)
                     Wishlist.Remove(msg2.Item);
+                _logger.Debug($"Recieved a WishlistModifiedMessage message, msg: {msg2}, source {nameof(LibraryViewModel)}");
             }    
 
             if (obj.InnerMessage is LocalAndServerLibrarySyncedMessage msg3)
@@ -102,6 +106,7 @@ namespace OverAudible.ViewModels
                 Library.Clear();
                 var l = await _libraryService.GetLibraryAsync();
                 Library.AddRange(l);
+                _logger.Debug($"Recieved a new LocalAndServerLibrarySyncedMessage, msg: {msg3}, source {nameof(LibraryViewModel)}");
             }
 
             if (obj.InnerMessage is LocalAndServerWishlistSyncedMessage msg4)
@@ -109,6 +114,7 @@ namespace OverAudible.ViewModels
                 Wishlist.Clear();
                 var w = await _libraryService.GetLibraryAsync();
                 Wishlist.AddRange(w);
+                _logger.Debug($"Recieved a new LocalAndServerWishlistSyncedMessage, msg: {msg4}, source {nameof(LibraryViewModel)}");
             }
         }
 
@@ -121,6 +127,7 @@ namespace OverAudible.ViewModels
         async Task CreateCollection()
         {
             await Shell.Current.ModalGoToAsync(nameof(NewCollectionModal));
+            _logger.Debug($"Opened new collection Modal, source {nameof(LibraryViewModel)}");
         }
 
         async Task CollectionOptions((string, string) nameAndID)
@@ -139,6 +146,7 @@ namespace OverAudible.ViewModels
                 _libraryService.RemoveCollection(nameAndID.Item2);
 
                 OnCollectionRemoved(nameAndID.Item2);
+                _logger.Information($"Deleted collection, name and id: {nameAndID}, source {nameof(LibraryViewModel)}");
             }
         }
 
@@ -148,11 +156,13 @@ namespace OverAudible.ViewModels
             {
                 StandardCommands.StopSampleCommand.Execute(null);
                 IsPlayingSample = false;
+                _logger.Debug($"Playing sample, book: {item}, source {nameof(LibraryViewModel)}");
             }
             else
             {
                 IsPlayingSample = true;
                 StandardCommands.PlaySampleCommand.Execute(item);
+                _logger.Debug($"Stoped sample, book: {item}, source {nameof(LibraryViewModel)}");
             }
         }
 
@@ -188,6 +198,8 @@ namespace OverAudible.ViewModels
                     Wishlist.Insert(0, itemToAdd);
                     sv.ScrollToVerticalOffset(bookCardHeightValue);
                 }
+                _logger.Verbose($"Scrolled wishlist, source {nameof(LibraryViewModel)}");
+
             }
         }
 
@@ -223,6 +235,8 @@ namespace OverAudible.ViewModels
                     Library.Insert(0, itemToAdd);
                     sv.ScrollToVerticalOffset(bookCardHeightValue);
                 }
+                _logger.Verbose($"Scrolled library, source {nameof(LibraryViewModel)}");
+
 
                 #region ok
                 /*if (sv.VerticalOffset > sv.ScrollableHeight - bookCardHeightValue 
@@ -257,7 +271,7 @@ namespace OverAudible.ViewModels
                             && !Library.Contains(TotalLibrary.First()))
                         {
 
-                        }*/ 
+                        }*/
                 #endregion
             }
         }
@@ -274,6 +288,7 @@ namespace OverAudible.ViewModels
                 }
 
                 Library.AddRange(l);
+                _logger.Information($"Loaded library in offline mode, number of download books:{l.Count}, source {nameof(LibraryViewModel)}");
             }
 
             else
@@ -334,16 +349,19 @@ namespace OverAudible.ViewModels
                             col.Image4 = TotalLibrary.First(x => x.Asin == col.BookAsins[3]).ProductImages.The500.AbsoluteUri;
                         }
                     }
+
+                    _logger.Information($"Loaded library in online mode, number ofbooks: {l.Count}, number of collections: {c.Count}, number of books in wishlist {w.Count}, source {nameof(LibraryViewModel)}");
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
-
+                    _logger.Error($"Error loading library, exception: {ex}, source {nameof(LibraryViewModel)}");
                 }
                 finally
                 {
                     IsBusy = false;
                     Shell.Current.IsWindowLocked = false;
+                    _logger.Debug($"Finished loading library, source {nameof(LibraryViewModel)}");
                 }
             }
 

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using OverAudible.Models;
 using OverAudible.Services;
+using Serilog;
 using ShellUI.Attributes;
 using ShellUI.Controls;
 using ShellUI.ViewModels;
@@ -20,10 +21,10 @@ namespace OverAudible.ViewModels
         AudiblePage homePage;
         public AudiblePage HomePage { get => homePage; set => SetProperty(ref homePage, value); }
 
-        public HomeViewModel(HomeService homeService)
+        public HomeViewModel(HomeService homeService, ILogger logger)
         {
             _homeService = homeService;
-            homePage = new AudiblePage();
+            _logger = logger;
         }
 
         public async Task Load()
@@ -35,10 +36,12 @@ namespace OverAudible.ViewModels
             {
                 IsBusy = true;
                 HomePage = await _homeService.GetPage();
+                _logger.Debug($"Loaded homepage, source {nameof(HomeViewModel)}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show(App.Current.MainWindow, "Failed to load home page", "Error");
+                _logger.Error($"Error loading home page, exception: {ex}, source {nameof(HomeViewModel)}");
             }
             finally
             {

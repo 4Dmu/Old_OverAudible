@@ -2,6 +2,7 @@
 using OverAudible.API;
 using OverAudible.Models;
 using OverAudible.Services;
+using Serilog;
 using ShellUI.Attributes;
 using ShellUI.Controls;
 using ShellUI.ViewModels;
@@ -27,8 +28,9 @@ namespace OverAudible.ViewModels
 
         public ConcurrentObservableCollection<Collection> Collections { get; }
 
-        public AddToCollectionModalViewModel(LibraryService libraryService)
+        public AddToCollectionModalViewModel(LibraryService libraryService, ILogger logger)
         {
+            _logger = logger;
             _libraryService = libraryService;
             Collections = new();
             SelectCollectionCommand = new AsyncRelayCommand<Collection>(SelectCollection);
@@ -42,6 +44,7 @@ namespace OverAudible.ViewModels
             var c = await _libraryService.GetCollectionsAsync();
             Collections.AddRange(c);
             IsBusy = false;
+            _logger.Debug($"Loaded, source {nameof(AddToCollectionModalViewModel)}");
         }
 
         async Task SelectCollection(Collection c)
@@ -51,6 +54,7 @@ namespace OverAudible.ViewModels
             var cols = await _libraryService.GetCollectionsAsync();
             cols.First(x => x.CollectionId == c.CollectionId).BookAsins.Add(ItemParam.Asin);
             Shell.Current.CloseAndClearModal();
+            _logger.Debug($"Selected collection, collection: {c}, source {nameof(AddToCollectionModalViewModel)}");
         }
     }
 }

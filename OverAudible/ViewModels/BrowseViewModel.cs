@@ -14,6 +14,7 @@ using ShellUI.Controls;
 using OverAudible.Views;
 using OverAudible.EventMessages;
 using OverAudible.Commands;
+using Serilog;
 
 namespace OverAudible.ViewModels
 {
@@ -76,8 +77,10 @@ namespace OverAudible.ViewModels
 
         public StandardCommands StandardCommands { get; }
 
-        public BrowseViewModel(StandardCommands standardCommands)
+        public BrowseViewModel(StandardCommands standardCommands, ILogger logger)
         {
+            _logger = logger;
+
             StandardCommands = standardCommands;
 
             Categories = new();
@@ -148,6 +151,7 @@ namespace OverAudible.ViewModels
                 PriceFilter = msg.Price;
                 LengthFilter = msg.Length;
                 Filter();
+                _logger.Debug($"Change filer message received: msg {msg}, source {nameof(BrowseViewModel)}");
             }
         }
 
@@ -184,6 +188,8 @@ namespace OverAudible.ViewModels
 
             ShowBrowseC = true;
             IsBusy = false;
+
+            _logger.Debug($"Selected category: category {categorie}, source {nameof(BrowseViewModel)}");
         }
 
         async Task Search()
@@ -248,6 +254,8 @@ namespace OverAudible.ViewModels
             }
 
             IsBusy = false;
+
+            _logger.Debug($"Searched catalog, items per page: {itemPerPage}, currentPage: {currentPage}, Category filer: {CategoryFilter}, search term {searchText}, source {nameof(BrowseViewModel)}");
         }
 
         void Clear()
@@ -259,6 +267,7 @@ namespace OverAudible.ViewModels
             this.SearchText = String.Empty;
             NavigateNextCommand.OnCanExecuteChanged();
             NavigateBackCommand.OnCanExecuteChanged();
+            _logger.Debug($"Cleared search or browse");
         }
 
         async Task ShowFilter()
@@ -269,11 +278,13 @@ namespace OverAudible.ViewModels
                 { "SelectedLengthProp", ModelExtensions.GetDescription(LengthFilter)  },
                 { "SelectedPriceProp", ModelExtensions.GetDescription(PriceFilter)  }
             });
+            _logger.Debug($"Showed filter modal, source {nameof(BrowseViewModel)}");
         }
 
         private void Filter()
         {
             SearchCommand.Execute(null);
+            _logger.Debug($"Filtered, source {nameof(BrowseViewModel)}");
         }
     }
 }

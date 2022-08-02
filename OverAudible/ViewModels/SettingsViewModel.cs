@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using ShellUI.Attributes;
 using ShellUI.Controls;
 using ShellUI.ViewModels;
@@ -15,8 +16,9 @@ namespace OverAudible.ViewModels
     [Inject(InjectionType.Transient)]
     public class SettingsViewModel : BaseViewModel
     {
-        public SettingsViewModel()
+        public SettingsViewModel(ILogger logger)
         {
+            _logger = logger;
             ToogleThemeCommand = new(ToogleTheme);
             ManageAccountCommand = new(ManageAccount);
             LogOutCommand = new(LogOut);
@@ -29,6 +31,7 @@ namespace OverAudible.ViewModels
         void ToogleTheme()
         {
             Shell.Current.ToggleTheme();
+            _logger.Debug($"Toggled Theme, isDarkTheme: {Shell.Current.IsDarkTheme}, source {nameof(SettingsViewModel)}");
         }
 
         void ManageAccount()
@@ -39,10 +42,12 @@ namespace OverAudible.ViewModels
                 UseShellExecute = true,
             };
             System.Diagnostics.Process.Start(sInfo);
+            _logger.Debug($"Launched browser and navigated to audible.com, source {nameof(SettingsViewModel)}");
         }
 
         void LogOut()
         {
+            _logger.Debug($"Deleting Identity file and restarting app,, source {nameof(SettingsViewModel)}");
             File.Delete(OverAudible.API.UserSetup.IDENTITY_FILE_PATH);
             App.Current.Restart();
         }
