@@ -216,14 +216,17 @@ namespace OverAudible
 
         private async Task CheckForUpdatesAsync()
         {
+            var logger = _host.Services.GetRequiredService<ILogger>();
             var updateInfo = await _manager.CheckForUpdate();
             if (updateInfo.ReleasesToApply.Count > 0)
             {
+                logger.Information($"Applying updates, source {nameof(App)}");
                 Action<int> prog = delegate (int i) 
                 {
                     ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString());
                 };
                 await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () => await _manager.UpdateApp(prog));
+                logger.Information($"Applied updates, source {nameof(App)}");
             }
         }
 
