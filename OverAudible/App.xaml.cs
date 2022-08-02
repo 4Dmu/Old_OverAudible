@@ -236,9 +236,11 @@ namespace OverAudible
 
         protected async override void OnExit(ExitEventArgs e)
         {
+            var logger = _host.Services.GetRequiredService<ILogger>();
             await _host.StopAsync();
             _host.Dispose();
             _host = null;
+            logger.Information($"Stoped host, source {nameof(App)}");
             base.OnExit(e);
         }
 
