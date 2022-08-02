@@ -31,6 +31,10 @@ namespace OverAudible.ViewModels
         int currentPage = 0;
 
         public int CurrentPage { get => currentPage; set => SetProperty(ref currentPage, value); }
+        
+        Categorie selectedBrowseCategory = 0;
+        public Categorie SelectedBrowseCategory { get => selectedBrowseCategory; set => SetProperty(ref selectedBrowseCategory, value); }
+
 
         private int itemPerPage { get; set; } = 50;
 
@@ -87,16 +91,41 @@ namespace OverAudible.ViewModels
                 Categories.Add(ModelExtensions.GetDescription(item));
             }
 
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SearchText))
+                {
+                    if (!string.IsNullOrWhiteSpace(SearchText))
+                    {
+                        if (SelectedBrowseCategory != Categorie.AllCategories)
+                        {
+                            SelectedBrowseCategory = Categorie.AllCategories;
+                            CurrentPage = 0;
+                            this.ShowBrowseC = false;
+                            Results.Clear();
+                            NavigateNextCommand.OnCanExecuteChanged();
+                            NavigateBackCommand.OnCanExecuteChanged();
+                        }
+                    }
+                }
+            };
+
             NavigateBackCommand = new(async () =>
             {
                 CurrentPage--;
-                await SearchCommand.ExecuteAsync(null);
+                if (SelectedBrowseCategory == Categorie.AllCategories)
+                    await Search();
+                else
+                    await SelectCategorie(SelectedBrowseCategory);
             }, () => CurrentPage > 0);
 
             NavigateNextCommand = new(async () =>
             {
                 CurrentPage++;
-                await SearchCommand.ExecuteAsync(null);
+                if (SelectedBrowseCategory == Categorie.AllCategories)
+                    await Search();
+                else
+                    await SelectCategorie(SelectedBrowseCategory);
             }, () => Results.Count != 0);
 
             Shell.Current.EventAggregator.Subscribe<RefreshBrowseMessage>(OnRefreshBrowseMessageReceived);
@@ -134,6 +163,8 @@ namespace OverAudible.ViewModels
                 return;
 
             IsBusy = true;
+
+            SelectedBrowseCategory = categorie;
 
             var api = await ApiClient.GetInstance();
 
@@ -221,6 +252,8 @@ namespace OverAudible.ViewModels
 
         void Clear()
         {
+            SelectedBrowseCategory = Categorie.AllCategories;
+            CurrentPage = 0;
             this.ShowBrowseC = false;
             Results.Clear();
             this.SearchText = String.Empty;
