@@ -190,7 +190,10 @@ namespace OverAudible
                 File.AppendAllText(Constants.LogFile, "\n Displayed offline allert");
             }
 
-            
+            MainWindow.Closed += (s, e) =>
+            {
+                App.Current.Shutdown();
+            };
 
             base.OnStartup(e);  
         }
@@ -198,16 +201,15 @@ namespace OverAudible
         private async Task CheckForUpdatesAsync()
         {
             var updateInfo = await _manager.CheckForUpdate();
-
+            File.AppendAllText(Constants.LogFile, "\n got update info");
             if (updateInfo.ReleasesToApply.Count > 0)
             {
-                ShellUI.Controls.MessageBox.Show("The app is currently installing updates, please wait");
+                File.AppendAllText(Constants.LogFile, "\n Number of updates: " + updateInfo.ReleasesToApply.Count);
                 Action<int> prog = delegate (int i) 
                 {
                     ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString());
                 };
                 await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () => await _manager.UpdateApp(prog));
-                ShellUI.Controls.MessageBox.Show("The app was sucessfully updated, please restart to apply updates.");
             }
         }
 

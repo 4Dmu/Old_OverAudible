@@ -5,7 +5,7 @@
              xmlns:shellUi="clr-namespace:ShellUI;assembly=ShellUI" 
              xmlns:converters="clr-namespace:OverAudible.Converters" 
              xmlns:controls="clr-namespace:Microsoft.Windows.Controls;assembly=U2UConsult.RichHtmlTextBlock"
-             ShutdownMode="OnMainWindowClose">
+             ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
