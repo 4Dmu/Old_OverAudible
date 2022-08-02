@@ -225,11 +225,26 @@ namespace OverAudible
             if (updateInfo.ReleasesToApply.Count > 0)
             {
                 logger.Information($"Applying updates, source {nameof(App)}");
-                Action<int> prog = delegate (int i) 
+                
+                ProgressDialog p = new()
                 {
-                    _context.Post(o => ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString()),null);
+                    Title = "Updating",
+                    Message = "Updating the app, please wait"
                 };
-                await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () => await _manager.UpdateApp(prog));
+
+                p.prog.IsIndeterminate = false;
+                p.Show();
+
+                Action<int> prog = delegate (int i)
+                {
+                    _context.Post(o => p.prog.Progress = i , null);
+                };
+
+                await _manager.UpdateApp(prog);
+
+                p.Close();
+
+                //await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () =>);
                 logger.Information($"Applied updates, source {nameof(App)}");
             }
         }

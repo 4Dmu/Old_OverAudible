@@ -16,6 +16,6 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <TextBlock Text="{Binding Message,ElementName=prnt}" Margin="3"/>
-        <syncfusion:SfLinearProgressBar Grid.Row="1" Height="25" Margin="5" IsIndeterminate="True"/>
+        <syncfusion:SfLinearProgressBar Grid.Row="1" Height="25" Margin="5" IsIndeterminate="True" x:Name="prog"/>
     </Grid>
 </Window>
