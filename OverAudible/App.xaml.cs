@@ -25,6 +25,7 @@ using System.Windows.Media.Imaging;
 using OverAudible.Windows;
 using Squirrel;
 using Serilog;
+using System.Threading;
 
 namespace OverAudible
 {
@@ -45,6 +46,7 @@ namespace OverAudible
     {
         IHost _host;
         UpdateManager _manager;
+        SynchronizationContext _context;
         
         public App()
         {
@@ -88,6 +90,8 @@ namespace OverAudible
         protected async override void OnStartup(StartupEventArgs e)
         {
             _host.Start();
+
+            _context = SynchronizationContext.Current;
 
             ILogger logger = _host.Services.GetRequiredService<ILogger>();
 
@@ -223,7 +227,7 @@ namespace OverAudible
                 logger.Information($"Applying updates, source {nameof(App)}");
                 Action<int> prog = delegate (int i) 
                 {
-                    ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString());
+                    _context.Post(o => ShellUI.Controls.MessageBox.Show("Progress percent: " + i.ToString()),null);
                 };
                 await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () => await _manager.UpdateApp(prog));
                 logger.Information($"Applied updates, source {nameof(App)}");
