@@ -26,14 +26,41 @@ using OverAudible.Windows;
 using Squirrel;
 using Serilog;
 using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace OverAudible
 {
     public static class Constants
     {
-        public static string DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible";
+        private static string appSettingsFile => "appsettings.json";
 
-        public static string LogFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\OverAudible\Logs\" + @"Log.txt";
+        public static string DownloadFolder => GetContainingFolder() + @"\OverAudible";
+
+        public static string jsonContaingFolderKey => "DownloadFolder";
+
+        private static string GetContainingFolder()
+        {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            if (File.Exists(potentialFile))
+            {
+                var jsonStr = File.ReadAllText(potentialFile);
+                var json = JsonConvert.DeserializeObject<JObject>(jsonStr);
+                if (json?.ContainsKey(jsonContaingFolderKey) is true)
+                {
+                    string downloadFolder = (string)json[jsonContaingFolderKey];
+                    path = downloadFolder;
+                }
+            }
+
+            return path;
+        }
+
+        public static string LogFile => GetContainingFolder() + @"\OverAudible\Logs\" + @"Log.txt";
+        
+        public static string potentialFile => AppDomain.CurrentDomain.BaseDirectory + appSettingsFile;
 
         public static string EnsureFolderExists(this string s)
         {
@@ -307,6 +334,25 @@ namespace OverAudible
         public static ImageSource GetImageFromString(string path)
         {
             return GetImageFromURI(new Uri(path));
+        }
+
+        public static void SetDownloadFolderPath()
+        {
+            var dialog = new CommonOpenFileDialog();
+            dialog.IsFolderPicker = true;
+            CommonFileDialogResult result = dialog.ShowDialog();
+            if (result == CommonFileDialogResult.Ok)
+            {
+                if (File.Exists(Constants.potentialFile))
+                {
+                    var jsonStr = File.ReadAllText(Constants.potentialFile);
+                    var json = JsonConvert.DeserializeObject<JObject>(jsonStr);
+                    if (json.ContainsKey(Constants.jsonContaingFolderKey))
+                        json.Remove(Constants.jsonContaingFolderKey);
+                    json.Add(Constants.jsonContaingFolderKey, dialog.FileName);
+                    File.WriteAllText(Constants.potentialFile, json.ToString());
+                }
+            }
         }
     }
 }

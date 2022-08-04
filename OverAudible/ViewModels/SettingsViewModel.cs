@@ -16,17 +16,23 @@ namespace OverAudible.ViewModels
     [Inject(InjectionType.Transient)]
     public class SettingsViewModel : BaseViewModel
     {
+        private string downloadFolderPath;
+        public string DownloadFolderPath { get => downloadFolderPath; set => SetProperty(ref downloadFolderPath, value); }
+
         public SettingsViewModel(ILogger logger)
         {
             _logger = logger;
             ToogleThemeCommand = new(ToogleTheme);
             ManageAccountCommand = new(ManageAccount);
             LogOutCommand = new(LogOut);
+            DownloadFolderPath = Constants.DownloadFolder;
+            ChangeDownloadFolderCommand = new(ChangeDownloadFolder);
         }
 
         public RelayCommand ToogleThemeCommand { get; }
         public RelayCommand ManageAccountCommand { get; }
         public RelayCommand LogOutCommand { get; }
+        public RelayCommand ChangeDownloadFolderCommand { get; }
 
         void ToogleTheme()
         {
@@ -50,6 +56,12 @@ namespace OverAudible.ViewModels
             _logger.Debug($"Deleting Identity file and restarting app,, source {nameof(SettingsViewModel)}");
             File.Delete(OverAudible.API.UserSetup.IDENTITY_FILE_PATH);
             App.Current.Restart();
+        }
+
+        void ChangeDownloadFolder()
+        {
+            AppExtensions.SetDownloadFolderPath();
+            DownloadFolderPath = Constants.DownloadFolder;
         }
     }
 }
