@@ -47,7 +47,7 @@
                 <TextBlock Text="Data &amp; Storage" FontSize="20" FontWeight="SemiBold"/>
                 <StackPanel Orientation="Horizontal" Margin="3">
                     <Button Content="Set Download Folder" Command="{Binding ChangeDownloadFolderCommand}"/>
-                    <TextBlock Text="{Binding DownloadFolderPath, StringFormat='Download Folder: {0}'}"/>
+                    <TextBlock Text="{Binding DownloadFolderPath, StringFormat='Download Folder: {0}'}" FontSize="15" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
             </StackPanel>
         </Border>
