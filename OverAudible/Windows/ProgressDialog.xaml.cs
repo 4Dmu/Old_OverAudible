@@ -29,6 +29,17 @@ namespace OverAudible.Windows
 
 
 
+        public bool IsIndeterminate
+        {
+            get { return (bool)GetValue(IsIndeterminateProperty); }
+            set { SetValue(IsIndeterminateProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsIndeterminateProperty =
+            DependencyProperty.Register("IsIndeterminate", typeof(bool), typeof(ProgressDialog), new PropertyMetadata(true));
+
+
+
         public ProgressDialog()
         {
             InitializeComponent();

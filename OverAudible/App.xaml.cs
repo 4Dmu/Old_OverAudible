@@ -262,10 +262,11 @@ namespace OverAudible
                 ProgressDialog p = new()
                 {
                     Title = "Updating",
-                    Message = "Updating the app, please wait"
+                    Message = "Updating the app, please wait",
+                    
                 };
 
-                p.prog.IsIndeterminate = false;
+                p.IsIndeterminate = false;
                 p.Show();
 
                 Action<int> prog = delegate (int i)
