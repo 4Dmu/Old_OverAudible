@@ -29,6 +29,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.Data.Sqlite;
 
 namespace OverAudible
 {
@@ -59,6 +60,8 @@ namespace OverAudible
         }
 
         public static string LogFile => GetContainingFolder() + @"\OverAudible\Logs\" + @"Log.txt";
+
+        public static string DataBasePath => $@"{GetContainingFolder()}\Database\OverAudible.db";
         
         public static string potentialFile => AppDomain.CurrentDomain.BaseDirectory + appSettingsFile;
 
@@ -87,7 +90,9 @@ namespace OverAudible
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
+                    //string connectionString = Constants.DataBasePath;
                     string connectionString = hostContext.Configuration.GetConnectionString("Default");
+                    var con = new SqliteConnectionStringBuilder() { DataSource = Constants.DataBasePath }.ConnectionString;
                     Action<DbContextOptionsBuilder> configureDbContext = o => o.UseSqlite(connectionString);
 
                     services.AddAutoMapper(typeof(App).Assembly);
@@ -95,6 +100,7 @@ namespace OverAudible
                     services.AddSingleton<MainDbContextFactory>(new MainDbContextFactory(configureDbContext));
                     services.AddSingleton<IDataService<Item>, DataService>();
                     services.AddSingleton<LibraryDataService>();
+                    services.AddSingleton<IgnoreListDataService>();
                     services.AddSingleton<WishlistDataService>();
                     services.AddSingleton<MediaPlayer>();
                     services.AddSingleton<IDownloadQueue, BlockingCollectionQueue>();
@@ -135,7 +141,6 @@ namespace OverAudible
             logger.Debug($"Set shell services, source {nameof(App)}");
 
             var data = _host.Services.GetRequiredService<MainDbContext>();
-
             data.Database.Migrate();
             logger.Debug($"Migrated database, source {nameof(App)}");
 
@@ -149,6 +154,7 @@ namespace OverAudible
             Routing.RegisterRoute(nameof(NewCollectionModal), typeof(NewCollectionModal));
             Routing.RegisterRoute(nameof(AddToCollectionModal), typeof(AddToCollectionModal));
             Routing.RegisterRoute(nameof(FilterModal), typeof(FilterModal));
+            Routing.RegisterRoute(nameof(ManageIgnoreListModal), typeof(ManageIgnoreListModal));
             logger.Debug($"Added routes, source {nameof(App)}");
 
 

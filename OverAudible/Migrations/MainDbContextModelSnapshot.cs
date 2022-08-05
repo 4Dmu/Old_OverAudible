@@ -61,6 +61,16 @@ namespace OverAudible.Migrations
 
                     b.ToTable("FullLibrary");
                 });
+
+            modelBuilder.Entity("OverAudible.Models.IgnoreItem", b =>
+                {
+                    b.Property<string>("Asin")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Asin");
+
+                    b.ToTable("IgnoreList");
+                });
 #pragma warning restore 612, 618
         }
     }

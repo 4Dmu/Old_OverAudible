@@ -15,12 +15,15 @@ using OverAudible.Views;
 using OverAudible.EventMessages;
 using OverAudible.Commands;
 using Serilog;
+using OverAudible.Services;
 
 namespace OverAudible.ViewModels
 {
     [Inject(InjectionType.Singleton)]
     public class BrowseViewModel : BaseViewModel
     {
+        private readonly IngoreListService _ingoreListService;
+
         public Categorie CategoryFilter { get; private set; } = Categorie.AllCategories;
         public Lengths LengthFilter { get; private set; } = Lengths.AllLengths;
         public Prices PriceFilter { get; private set; } = Prices.AllPrices;
@@ -35,7 +38,6 @@ namespace OverAudible.ViewModels
         
         Categorie selectedBrowseCategory = 0;
         public Categorie SelectedBrowseCategory { get => selectedBrowseCategory; set => SetProperty(ref selectedBrowseCategory, value); }
-
 
         private int itemPerPage { get; set; } = 50;
 
@@ -77,9 +79,11 @@ namespace OverAudible.ViewModels
 
         public StandardCommands StandardCommands { get; }
 
-        public BrowseViewModel(StandardCommands standardCommands, ILogger logger)
+        public BrowseViewModel(StandardCommands standardCommands, IngoreListService ingoreListService, ILogger logger)
         {
             _logger = logger;
+
+            _ingoreListService = ingoreListService;
 
             StandardCommands = standardCommands;
 
@@ -243,6 +247,8 @@ namespace OverAudible.ViewModels
                     break;
             }
 
+            res = await VerifyResults(res);
+
             Results.Clear();
             Results.AddRange(res);
             NavigateNextCommand.OnCanExecuteChanged();
@@ -256,6 +262,21 @@ namespace OverAudible.ViewModels
             IsBusy = false;
 
             _logger.Debug($"Searched catalog, items per page: {itemPerPage}, currentPage: {currentPage}, Category filer: {CategoryFilter}, search term {searchText}, source {nameof(BrowseViewModel)}");
+        }
+
+        private async Task<List<Item>> VerifyResults(List<Item> res)
+        {
+            var itemsToIgnore = await _ingoreListService.GetIngoredItems();
+
+            if (itemsToIgnore == null || itemsToIgnore.Count == 0)
+                return res;
+
+            var productsToRemove = res.Where(x => itemsToIgnore.FirstOrDefault(y => y.Asin == x.Asin) != null).ToList();
+
+            foreach (var product in productsToRemove)
+                res.Remove(product);
+
+            return res;
         }
 
         void Clear()
@@ -276,7 +297,8 @@ namespace OverAudible.ViewModels
             {
                 { "SelectedCategoryProp", ModelExtensions.GetDescription(CategoryFilter)  },
                 { "SelectedLengthProp", ModelExtensions.GetDescription(LengthFilter)  },
-                { "SelectedPriceProp", ModelExtensions.GetDescription(PriceFilter)  }
+                { "SelectedPriceProp", ModelExtensions.GetDescription(PriceFilter)  },
+                { "SenderProp", FilterModalSender.BrowseViewModel  }
             });
             _logger.Debug($"Showed filter modal, source {nameof(BrowseViewModel)}");
         }

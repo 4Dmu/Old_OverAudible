@@ -35,7 +35,6 @@ namespace OverAudible.Views
             };
         }
 
-
         private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             var scrollControl = sender as ScrollViewer;
@@ -56,6 +55,7 @@ namespace OverAudible.Views
             }
         }
 
+        /* Old MouseButtonDownHandler for book tile
         private async void BookInstance_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is Border c)
@@ -81,5 +81,6 @@ namespace OverAudible.Views
                 }
             }
         }
+        */
     }
 }

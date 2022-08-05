@@ -64,6 +64,19 @@ namespace OverAudible.API
             return Shell.DependencyService.ServiceProvider.GetRequiredService<IMapper>().Map<Item>(i);
         }
 
+        public async Task<List<Item>> GetCalalogItemsFromAsinsAsync(List<string> asins)
+        {
+            List<Item> items = new List<Item>();
+
+            foreach (var asin in asins)
+            {
+                var a = await GetCatalogItemAsync(asin, CatalogOptions.ResponseGroupOptions.Media);
+                items.Add(a);
+            }
+
+            return items;
+        }
+
         public async Task<Item> GetLibraryItemAsync(string asin, LibraryOptions.ResponseGroupOptions responseGroupOptions)
         {
             var i = await Api.GetLibraryBookAsync(asin, responseGroupOptions);

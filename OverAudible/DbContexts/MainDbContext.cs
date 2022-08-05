@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OverAudible.Models.DTOs;
+using OverAudible.Models;
 
 namespace OverAudible.DbContexts
 {
@@ -19,6 +20,8 @@ namespace OverAudible.DbContexts
         public DbSet<NoMetaItemDTO> FullLibrary { get; set; }
 
         public DbSet<CatalogItemDTO> Wishlist { get; set; }
+
+        public DbSet<IgnoreItem> IgnoreList { get; set; }
 
     }
 }

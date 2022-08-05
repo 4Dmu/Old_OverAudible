@@ -18,11 +18,14 @@ namespace OverAudible.ViewModels
     [QueryProperty("SelectedCategory", "SelectedCategoryProp")]
     [QueryProperty("SelectedLength", "SelectedLengthProp")]
     [QueryProperty("SelectedPrice", "SelectedPriceProp")]
+    [QueryProperty("Sender", "SenderProp")]
     public class FilterModalViewModel : BaseViewModel
     {
         public List<string> CategoryFilters { get; set; }
         public List<string> LengthFilters { get; set; }
         public List<string> PriceFilters { get; set; }
+
+        public FilterModalSender Sender { get; set; }
 
         private string selectedCategory;
         public string SelectedCategory { get => selectedCategory; set => SetProperty(ref selectedCategory, value); }
@@ -48,9 +51,21 @@ namespace OverAudible.ViewModels
 
             ApplyFiltersCommand = new(() =>
             {
-                Shell.Current.EventAggregator.Publish<RefreshBrowseMessage>(new RefreshBrowseMessage(new ChangeFilterMessage(ModelExtensions.GetValueFromDescription<Categorie>(SelectedCategory),
+                if (Sender is FilterModalSender.BrowseViewModel)
+                {
+                    Shell.Current.EventAggregator.Publish<RefreshBrowseMessage>(new RefreshBrowseMessage(new ChangeFilterMessage(ModelExtensions.GetValueFromDescription<Categorie>(SelectedCategory),
                        ModelExtensions.GetValueFromDescription<Lengths>(SelectedLength),
                        ModelExtensions.GetValueFromDescription<Prices>(SelectedPrice))));
+                }
+
+                if (Sender is FilterModalSender.LibraryViewModel)
+                {
+                    Shell.Current.EventAggregator.Publish<RefreshLibraryMessage>(
+                        new RefreshLibraryMessage(new ChangeFilterMessage(ModelExtensions.GetValueFromDescription<Categorie>(SelectedCategory),
+                      ModelExtensions.GetValueFromDescription<Lengths>(SelectedLength),
+                      ModelExtensions.GetValueFromDescription<Prices>(SelectedPrice))));
+                }
+
                 Shell.Current.CloseAndClearModal();
             }, () => true );
         }

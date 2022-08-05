@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using OverAudible.Models;
 using OverAudible.API;
+using OverAudible.EventMessages;
 
 namespace OverAudible.Views
 {
@@ -38,6 +39,42 @@ namespace OverAudible.Views
             {
                 Shell.Current.KeyDown -= GlobalKeyDown;
             };
+            Shell.Current.EventAggregator.Subscribe<LibraryViewMessage>(OnLibraryViewMessageReceived);
+        }
+
+        private void OnLibraryViewMessageReceived(LibraryViewMessage obj)
+        {
+            if (obj.InnerMessage is ScrollLibraryMessage msg)
+            {
+                switch (msg.Ammount)
+                {
+                    case ScrollAmount.Top:
+                        scroll.ScrollToTop();
+                        break;
+                    case ScrollAmount.Bottom:
+                        scroll.ScrollToBottom();
+                        break;
+                    case ScrollAmount.Center:
+                        scroll.ScrollToHorizontalOffset(scroll.ViewportHeight / 2);
+                        break;
+                }
+            }
+
+            if (obj.InnerMessage is ScrollWishlistMessage msg2)
+            {
+                switch (msg2.Ammount)
+                {
+                    case ScrollAmount.Top:
+                        scroll2.ScrollToTop();
+                        break;
+                    case ScrollAmount.Bottom:
+                        scroll2.ScrollToBottom();
+                        break;
+                    case ScrollAmount.Center:
+                        scroll2.ScrollToHorizontalOffset(scroll2.ViewportHeight / 2);
+                        break;
+                }
+            }
         }
 
         private async void CollectionBookInstance_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -254,6 +291,8 @@ namespace OverAudible.Views
             }
 
         }
+
+
     }
 
 

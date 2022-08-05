@@ -1,0 +1,79 @@
+﻿<controls:ShellPage x:Class="OverAudible.Views.ManageIgnoreListModal"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+                    xmlns:local="clr-namespace:OverAudible.Views"
+                    xmlns:shellUi="clr-namespace:ShellUI;assembly=ShellUI"
+                    xmlns:controls="clr-namespace:ShellUI.Controls;assembly=ShellUI"
+                    xmlns:models="clr-namespace:OverAudible.Models"
+                    xmlns:behaviours="http://schemas.microsoft.com/xaml/behaviors" 
+                    xmlns:behaviors="clr-namespace:OverAudible.Behaviors"
+                    mc:Ignorable="d" 
+                    Height="350" 
+                    Width="400">
+    <Grid Margin="5">
+
+        <Grid.RowDefinitions>
+
+            <RowDefinition Height="Auto"/>
+            <RowDefinition />
+            <RowDefinition Height="Auto"/>
+
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Ignore List" HorizontalAlignment="Center"
+                   FontSize="20" FontWeight="SemiBold"/>
+
+        <ScrollViewer Grid.Row="1">
+
+            <ItemsControl ItemsSource="{Binding IgnoredItems}"
+                          >
+
+                <ItemsControl.ItemTemplate>
+                    
+                    <DataTemplate DataType="{x:Type models:Item}">
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+
+                            <CheckBox>
+                                <behaviours:Interaction.Triggers>
+                                    <behaviours:EventTrigger EventName="Checked">
+                                        <behaviours:InvokeCommandAction 
+                                            Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=controls:ShellPage}, Path=DataContext.CheckCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </behaviours:EventTrigger>
+                                    <behaviours:EventTrigger EventName="Unchecked">
+                                        <behaviours:InvokeCommandAction 
+                                            Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=controls:ShellPage}, Path=DataContext.CheckCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </behaviours:EventTrigger>
+                                </behaviours:Interaction.Triggers>
+                                
+                            </CheckBox>
+
+                            <Image Width="50" Height="50" Source="{Binding ProductImages.The500}"/>
+
+                            <TextBlock Text="{Binding Title}" FontSize="15" 
+                                       VerticalAlignment="Center" Margin="2"/>
+                            
+                        </StackPanel>
+
+                    </DataTemplate>
+                    
+                </ItemsControl.ItemTemplate>
+                
+            </ItemsControl>
+            
+        </ScrollViewer>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
+            <Button HorizontalAlignment="Center" Margin="2" Width="100"
+                Content="Apply" Command="{Binding ApplyCommand}"/>
+            <Button HorizontalAlignment="Center" Margin="2" Width="100"
+                Content="Cancel" Command="{Binding CancelCommand}"/>
+        </StackPanel>
+
+    </Grid>
+    
+</controls:ShellPage>
