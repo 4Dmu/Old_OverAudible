@@ -8,7 +8,7 @@
                     xmlns:exts="clr-namespace:ShellUI.Extensions;assembly=ShellUI"
                     xmlns:controls="clr-namespace:ShellUI.Controls;assembly=ShellUI"
                     mc:Ignorable="d" 
-                    Height="250" 
+                    Height="280" 
                     Width="300">
     <Grid Margin="5">
         <Grid.RowDefinitions>
@@ -16,19 +16,20 @@
             <RowDefinition />
             <RowDefinition />
             <RowDefinition />
+            <RowDefinition  Height="Auto"/>
             <RowDefinition />
         </Grid.RowDefinitions>
 
         <TextBlock Text="Filter" HorizontalAlignment="Center" FontSize="20"/>
 
         <StackPanel Grid.Row="1">
-            <TextBlock Text="Category"/>
+            <TextBlock Text="Categories"/>
             <ComboBox ItemsSource="{Binding CategoryFilters}"
                       SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2">
-            <TextBlock Text="Length"/>
+            <TextBlock Text="Duration"/>
             <ComboBox ItemsSource="{Binding LengthFilters}"
                       SelectedItem="{Binding SelectedLength, Mode=TwoWay}"/>
         </StackPanel>
@@ -39,7 +40,20 @@
                       SelectedItem="{Binding SelectedPrice, Mode=TwoWay}"/>
         </StackPanel>
 
-        <Button Grid.Row="4" Height="30" Width="100" Content="Apply" Command="{Binding ApplyFiltersCommand}"/>
+        <StackPanel Grid.Row="4" Visibility="{Binding UseReleasesFilter, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Text="New Releases"/>
+            <ComboBox ItemsSource="{Binding ReleaseFilters}"
+                      SelectedItem="{Binding SelectedRelease, Mode=TwoWay}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Center">
+            
+            <Button  Height="30" Width="100" Content="Apply" Command="{Binding ApplyFiltersCommand}"/>
+            <Button  Height="30" Width="100" Content="Reset" Command="{Binding ResetFiltersCommand}" Margin="5,0,0,0"/>
+            
+        </StackPanel>
+        
+        
 
     </Grid>
 </controls:ShellPage>

@@ -27,6 +27,7 @@ namespace OverAudible.ViewModels
         public Categorie CategoryFilter { get; private set; } = Categorie.AllCategories;
         public Lengths LengthFilter { get; private set; } = Lengths.AllLengths;
         public Prices PriceFilter { get; private set; } = Prices.AllPrices;
+        public Releases ReleaseFilter { get; private set; } = Releases.None;
 
         public ObservableCollection<string> Categories { get; set; }
 
@@ -148,12 +149,13 @@ namespace OverAudible.ViewModels
         {
             if (obj.InnerMessage is ChangeFilterMessage msg)
             {
-                if (CategoryFilter == msg.Category && PriceFilter == msg.Price && LengthFilter == msg.Length)
+                if (CategoryFilter == msg.Category && PriceFilter == msg.Price && LengthFilter == msg.Length && msg.Releases == Releases.None)
                     return;
 
                 CategoryFilter = msg.Category;
                 PriceFilter = msg.Price;
                 LengthFilter = msg.Length;
+                ReleaseFilter = msg.Releases;
                 Filter();
                 _logger.Debug($"Change filer message received: msg {msg}, source {nameof(BrowseViewModel)}");
             }
@@ -247,6 +249,25 @@ namespace OverAudible.ViewModels
                     break;
             }
 
+            DateTime now = DateTime.Today.ToUniversalTime();
+
+            DateTime thirty = now.AddMonths(-1);
+
+            DateTime ninety = now.AddMonths(-3);
+
+            switch (ReleaseFilter)
+            {
+                case Releases.ComingSoon:
+                    res = res.Where(x => x.ReleaseDate != null && x.ReleaseDate.Value.UtcDateTime > now).ToList();
+                    break;
+                case Releases.Last30Days:
+                    res = res.Where(x => x.ReleaseDate != null && x.ReleaseDate.Value.UtcDateTime < now && x.ReleaseDate.Value.UtcDateTime >= thirty).ToList();
+                    break;
+                case Releases.Last90Days:
+                    res = res.Where(x => x.ReleaseDate != null && x.ReleaseDate.Value.UtcDateTime < now && x.ReleaseDate.Value.UtcDateTime >= ninety).ToList();
+                    break;
+            }
+
             res = await VerifyResults(res);
 
             Results.Clear();
@@ -298,7 +319,9 @@ namespace OverAudible.ViewModels
                 { "SelectedCategoryProp", ModelExtensions.GetDescription(CategoryFilter)  },
                 { "SelectedLengthProp", ModelExtensions.GetDescription(LengthFilter)  },
                 { "SelectedPriceProp", ModelExtensions.GetDescription(PriceFilter)  },
-                { "SenderProp", FilterModalSender.BrowseViewModel  }
+                { "SelectedReleaseProp", ModelExtensions.GetDescription(ReleaseFilter)  },
+                { "SenderProp", FilterModalSender.BrowseViewModel  },
+                { "UseReleasesFilterProp", true  }
             });
             _logger.Debug($"Showed filter modal, source {nameof(BrowseViewModel)}");
         }

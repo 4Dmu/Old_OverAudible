@@ -272,6 +272,31 @@ namespace OverAudible.API
 
             return l;
         }
+
+        public async Task<Models.ScreenModels.Screen> GetScreen(List<string> keywords)
+        {
+            string url = "/1.0/screens/audible-browse/search-ios";
+
+            url =
+                url
+                + $"?keywords=" + string.Join("%20", keywords)
+                + "&origin_page=SearchDiscoverCombo"
+                + "&locales=en-US"
+                + "&marketplace=AF2M0KC94RCEA"
+                + "&publication_date=18685639011"
+                + "&content_type=All"
+                ;
+
+            url += url.Contains("?") ? "&" : "?";
+            var responseMsg = await Api.AdHocAuthenticatedGetAsync(url);
+            var jObj = await responseMsg.Content.ReadAsJObjectAsync();
+
+            string s = jObj.ToString(Formatting.Indented);
+
+            var obj = JsonConvert.DeserializeObject<Models.ScreenModels.Screen>(s);
+
+            return obj;
+        }
         
         public async Task AddItemToCollection(Item item, Collection collection)
         {

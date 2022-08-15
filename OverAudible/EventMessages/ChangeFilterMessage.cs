@@ -14,11 +14,14 @@ namespace OverAudible.EventMessages
         public Lengths Length { get; }
         public Prices Price { get; }
 
-        public ChangeFilterMessage(Categorie categorie, Lengths length, Prices price)
+        public Releases Releases { get; }
+
+        public ChangeFilterMessage(Categorie categorie, Lengths length, Prices price, Releases releases)
         {
             Category = categorie;
             Length = length;
             Price = price;
+            Releases = releases;
         }
     }
 }
