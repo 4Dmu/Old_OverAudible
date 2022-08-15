@@ -255,6 +255,11 @@ namespace OverAudible
         {
             var logger = _host.Services.GetRequiredService<ILogger>();
             var updateInfo = await _manager.CheckForUpdate();
+
+            if (updateInfo.ReleasesToApply.Count > 0)
+                await UpdateAppAsync();
+
+            /*
             if (updateInfo.ReleasesToApply.Count > 0)
             {
                 logger.Information($"Applying updates, source {nameof(App)}");
@@ -281,6 +286,30 @@ namespace OverAudible
                 //await ProgressDialog.ShowDialogAsync<ReleaseEntry>("Updating", "Updating the app, please wait", async () =>);
                 logger.Information($"Applied updates, source {nameof(App)}");
             }
+            */
+        }
+
+        private async Task UpdateAppAsync()
+        {
+            var logger = _host.Services.GetRequiredService<ILogger>();
+
+            var window = new ProgressDialogV2();
+            window.Title = "Update";
+            window.Message = "We're downloading and update, please wait...";
+            window.Show();
+
+            Action<int> progress = delegate (int value)
+            {
+                _context.Post(o => window.Progress = value, null);
+            };
+
+            await _manager.UpdateApp(progress);
+
+            window.Close();
+
+            logger.Information($"Applied updates, source {nameof(App)}");
+
+            ShellUI.Controls.MessageBox.Show("App updated sucessfully, please restart so the update can take effect");
         }
 
         protected async override void OnExit(ExitEventArgs e)
